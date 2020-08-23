@@ -1,10 +1,10 @@
-import React, { useEffect, useCallback, useRef } from "react";
+import React, { useEffect, useCallback, useRef, ReactHTMLElement } from "react";
 import styled from "styled-components";
 import useDebounce from "../../hooks/use-debounce";
+import { ScrollUtil } from "../../../utils/DataUtil";
+let scrollUtil: any;
 
 interface AutocompleteOptions {
-  clientSide: boolean;
-  showNoData: boolean;
   key: string;
   label: string;
 }
@@ -21,6 +21,7 @@ const Container = styled.div`
   color: #191f42;
   flex-wrap: wrap;
   flex-basis: 50%;
+  position: relative;
 `;
 
 const InputSearch = styled.input`
@@ -56,14 +57,14 @@ const SearchItem = styled.span`
   font-size: 14px;
   cursor: pointer;
   &.active {
-    background: linear-gradient(darkblue, navy);
+    background: linear-gradient(darkblue, #1f3a93);
     animation: scale 0.2s linear;
     color: #fff;
     letter-spacing: 2px;
   }
   &:hover {
-    background: green;
-    color: #f5f5f5;
+    background: linear-gradient(darkblue, #1f3a93);
+    color: #fff;
   }
   @keyframes scale {
     from {
@@ -75,6 +76,13 @@ const SearchItem = styled.span`
   }
 `;
 
+const Clear = styled.div`
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  font-size: 18px;
+`;
+
 const Autocomplete = (props: AutocompleteProps) => {
   const [selected, setSelected] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -84,12 +92,24 @@ const Autocomplete = (props: AutocompleteProps) => {
   const debouncedValue = useDebounce(selected, 500);
   const searchResultRef = useRef<any>(null);
   const [cacheResults, setCacheResults] = React.useState({} as any);
-  const [data, setData] = React.useState([]);
+  const [data, setData] = React.useState([] as any);
+
+  function updateCache(data: any, value: any) {
+    const cache = Object.assign({}, cacheResults);
+    cache[debouncedValue] = data;
+    return cache;
+  }
 
   useEffect(() => {
-    setSelectedIndex(0);
     setData(props.data as []);
   }, [props.data]);
+
+  useEffect(() => {
+    const cache = updateCache(data, debouncedValue);
+    setCacheResults(cache);
+    setSelectedIndex(0);
+    resetScroll(searchResultRef);
+  }, [data, debouncedValue]);
 
   const mouseClickListener = (ev: MouseEvent, index: number) => {
     updateSelection(index);
@@ -100,6 +120,7 @@ const Autocomplete = (props: AutocompleteProps) => {
   const onChangeListener = (ev: any) => {
     search(ev.target.value);
     setFocused(true);
+    scrollUtil.set(0);
   };
 
   const handleClickOutside = (ev: MouseEvent) => {
@@ -112,10 +133,15 @@ const Autocomplete = (props: AutocompleteProps) => {
   };
 
   useEffect(() => {
+    scrollUtil = ScrollUtil();
+    scrollUtil.set(0);
     document.body.addEventListener("click", (ev: MouseEvent) => {
       handleClickOutside(ev);
     });
-    return () => document.body.removeEventListener("click", (ev) => {});
+    return () => {
+      document.body.removeEventListener("click", (ev) => {});
+      scrollUtil = undefined;
+    };
   }, []);
 
   function updateSelection(index: number) {
@@ -143,17 +169,37 @@ const Autocomplete = (props: AutocompleteProps) => {
     ));
   };
 
+  const resetScroll = (searchResultRef: any) => {
+    if (
+      scrollUtil &&
+      scrollUtil.get &&
+      searchResultRef &&
+      searchResultRef.current
+    ) {
+      const scrollPos = scrollUtil.get();
+      console.log(scrollPos);
+      searchResultRef.current.scrollTo(0, scrollPos);
+    }
+  };
+
   const preferCache = (value: string) => {
     if (value in cacheResults) {
-      cacheResults[value];
+      console.log("FETCHING FROM CACHE", value);
+      setSelectedIndex(0);
+      setData(cacheResults[value]);
+      resetScroll(searchResultRef);
     } else {
+      console.log("DOESNT EXIST IN CACHE", value);
       props.change(value);
     }
   };
 
   useEffect(() => {
-    // preferCache(debouncedValue);
-    props.change(debouncedValue);
+    if (debouncedValue && debouncedValue.length > 0) {
+      preferCache(debouncedValue);
+    } else {
+      setData([]);
+    }
   }, [debouncedValue]);
 
   const search = (value: string) => {
@@ -161,9 +207,7 @@ const Autocomplete = (props: AutocompleteProps) => {
   };
 
   const setSelection = (index: number) => {
-    const selected: any = props.data
-      .filter((d: any, i: number) => i === index)
-      .pop();
+    const selected: any = data.filter((d: any, i: number) => i === index).pop();
     setSelected(selected[options.label]);
   };
 
@@ -178,14 +222,21 @@ const Autocomplete = (props: AutocompleteProps) => {
       case 38:
         if (selectedIndex > 0) {
           setSelectedIndex(selectedIndex - 1);
-          searchResultRef.current.scrollBy(0, -40);
+          // searchResultRef.current.scrollBy(0, -40 * selectedIndex);
+          let scrollPos = scrollUtil.get();
+          let newScrollPos = scrollPos - 40 - 10;
+          scrollUtil.set(newScrollPos);
+          searchResultRef.current.scrollTop = newScrollPos;
         }
         break;
       //DOWN
       case 40:
         if (selectedIndex < props.data.length - 1) {
           setSelectedIndex(selectedIndex + 1);
-          searchResultRef.current.scrollBy(0, 40);
+          let scrollPos = scrollUtil.get();
+          let newScrollPos = scrollPos + 40 + 5;
+          scrollUtil.set(newScrollPos);
+          searchResultRef.current.scrollTop = newScrollPos;
         }
         break;
       //ENTER
@@ -197,16 +248,28 @@ const Autocomplete = (props: AutocompleteProps) => {
     }
   };
 
+  const onFocusListener = () => {
+    setFocused(true);
+  };
+
+  const clearInput = (e: any) => {
+    setData([]);
+    setSelected("");
+    scrollUtil.set(0);
+  };
+
   return (
     <Container ref={autoRef}>
       <InputSearch
         type={`text`}
-        onFocus={(e: any) => setFocused(true)}
-        // onBlur={(e: any) => setFocused(false)}
+        onFocus={(e: any) => onFocusListener()}
         onChange={(ev: any) => onChangeListener(ev)}
         onKeyDown={(e: any) => moveSelection(e)}
         value={selected}
       ></InputSearch>
+      <Clear onClick={(e: any) => clearInput(e)}>
+        <i className="fa fa-times fa-1x"></i>
+      </Clear>
       {focused ? (
         <SearchResults ref={searchResultRef}>
           {renderSearchItems()}

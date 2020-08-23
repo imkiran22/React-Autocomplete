@@ -1,3 +1,13 @@
+export const ScrollUtil = () => {
+  let scrollPosition = 0;
+  return {
+    get: () => scrollPosition,
+    set: (val: number) => { 
+      scrollPosition = val
+    }
+  };
+};
+
 export const UsersData = [
   {
     id: 1,
