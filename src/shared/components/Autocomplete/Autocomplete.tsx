@@ -264,7 +264,7 @@ const Autocomplete = (props: AutocompleteProps) => {
   const onFocusListener = (searchResultRef: any) => {
     setFocused(true);
     setTimeout(() => {
-      if (searchResultRef && searchResultRef.current) {
+      if (scrollUtil && searchResultRef && searchResultRef.current) {
         searchResultRef.current.scrollTo(0, scrollUtil.get());
       }
     });
