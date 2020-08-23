@@ -1,14 +1,12 @@
 import * as React from "react";
 import "./styles.css";
 import Autocomplete from "./shared/components/Autocomplete/Autocomplete";
-import { ScrollUtil } from "./utils/DataUtil";
-const API_END_POINT = `https://randomapi.com/api/6de6abfedb24f889e0b5f675edc50deb?fmt=raw&sole`;
-
+const API_END_POINT = `https://api.github.com/search/users`;
 const Options = {
   clientSide: true,
   showNoData: true,
-  key: "email",
-  label: "first"
+  key: "id",
+  label: "login"
 };
 
 export default function App() {
@@ -24,9 +22,10 @@ export default function App() {
   };
 
   const queryApi = async (value: string) => {
-    const response = await fetch(API_END_POINT);
+    const URL = `${API_END_POINT}?q=${value}`;
+    const response = await fetch(URL);
     const data = await response.json();
-    filter(value, data);
+    filter(value, data.items);
   };
   return (
     <div className="App">

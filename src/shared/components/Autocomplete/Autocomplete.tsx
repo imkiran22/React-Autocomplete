@@ -81,6 +81,7 @@ const Clear = styled.div`
   right: 10px;
   top: 10px;
   font-size: 18px;
+  cursor: pointer;
 `;
 
 const Autocomplete = (props: AutocompleteProps) => {
@@ -250,6 +251,10 @@ const Autocomplete = (props: AutocompleteProps) => {
 
   const onFocusListener = () => {
     setFocused(true);
+    if (searchResultRef && searchResultRef.current) {
+      console.log(scrollUtil.get())
+      searchResultRef.current.scrollTo(0, scrollUtil.get())
+    }
   };
 
   const clearInput = (e: any) => {
