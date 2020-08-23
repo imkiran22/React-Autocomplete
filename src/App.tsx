@@ -29,7 +29,7 @@ export default function App() {
   };
   return (
     <div className="App">
-      <h1>Search Your Query</h1>
+      <h1>Search Github Users</h1>
       <div className="Autocomplete-Container">
         <Autocomplete
           options={Options}
