@@ -247,12 +247,13 @@ const Autocomplete = (props: AutocompleteProps) => {
     }
   };
 
-  const onFocusListener = () => {
+  const onFocusListener = (searchResultRef: any) => {
     setFocused(true);
-    if (searchResultRef && searchResultRef.current) {
-      console.log(scrollUtil.get());
-      searchResultRef.current.scrollTo(0, scrollUtil.get());
-    }
+    setTimeout(() => {
+      if (searchResultRef && searchResultRef.current) {
+        searchResultRef.current.scrollTo(0, scrollUtil.get());
+      }
+    })
   };
 
   const clearInput = (e: any) => {
@@ -265,7 +266,7 @@ const Autocomplete = (props: AutocompleteProps) => {
     <Container ref={autoRef}>
       <InputSearch
         type={`text`}
-        onFocus={(e: any) => onFocusListener()}
+        onFocus={(e: any) => onFocusListener(searchResultRef)}
         onChange={(ev: any) => onChangeListener(ev)}
         onKeyDown={(e: any) => moveSelection(e)}
         value={selected}
