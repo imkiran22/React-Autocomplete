@@ -178,7 +178,6 @@ const Autocomplete = (props: AutocompleteProps) => {
       searchResultRef.current
     ) {
       const scrollPos = scrollUtil.get();
-      console.log(scrollPos);
       searchResultRef.current.scrollTo(0, scrollPos);
     }
   };
@@ -223,9 +222,8 @@ const Autocomplete = (props: AutocompleteProps) => {
       case 38:
         if (selectedIndex > 0) {
           setSelectedIndex(selectedIndex - 1);
-          // searchResultRef.current.scrollBy(0, -40 * selectedIndex);
           let scrollPos = scrollUtil.get();
-          let newScrollPos = scrollPos - 40 - 10;
+          let newScrollPos = scrollPos - 45;
           scrollUtil.set(newScrollPos);
           searchResultRef.current.scrollTop = newScrollPos;
         }
@@ -235,7 +233,7 @@ const Autocomplete = (props: AutocompleteProps) => {
         if (selectedIndex < props.data.length - 1) {
           setSelectedIndex(selectedIndex + 1);
           let scrollPos = scrollUtil.get();
-          let newScrollPos = scrollPos + 40 + 5;
+          let newScrollPos = scrollPos + 45;
           scrollUtil.set(newScrollPos);
           searchResultRef.current.scrollTop = newScrollPos;
         }
@@ -252,8 +250,8 @@ const Autocomplete = (props: AutocompleteProps) => {
   const onFocusListener = () => {
     setFocused(true);
     if (searchResultRef && searchResultRef.current) {
-      console.log(scrollUtil.get())
-      searchResultRef.current.scrollTo(0, scrollUtil.get())
+      console.log(scrollUtil.get());
+      searchResultRef.current.scrollTo(0, scrollUtil.get());
     }
   };
 
