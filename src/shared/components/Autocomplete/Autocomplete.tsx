@@ -10,7 +10,7 @@ interface AutocompleteOptions {
 }
 
 interface AutocompleteProps {
-  options: { [key: string]: any };
+  options: AutocompleteOptions;
   data: { [key: string]: any }[];
   change: Function;
 }
@@ -90,10 +90,12 @@ const Autocomplete = (props: AutocompleteProps) => {
   const [focused, setFocused] = React.useState(false);
   const options = props.options;
   const autoRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const debouncedValue = useDebounce(selected, 500);
   const searchResultRef = useRef<any>(null);
   const [cacheResults, setCacheResults] = React.useState({} as any);
   const [data, setData] = React.useState([] as any);
+  const [temp, setTemp] = React.useState(0);
 
   function updateCache(data: any, value: any) {
     const cache = Object.assign({}, cacheResults);
@@ -116,6 +118,16 @@ const Autocomplete = (props: AutocompleteProps) => {
     updateSelection(index);
     setSelectedIndex(index);
     setFocused(false);
+  };
+
+  const mouseHoverListener = (ev: MouseEvent, index: number) => {
+    const selected: any = data.filter((d: any, i: number) => i === index).pop();
+    const value = selected[options.label];
+    if (inputRef.current) inputRef.current.value = value;
+  };
+
+  const mouseOutListener = (ev: MouseEvent) => {
+    if (inputRef.current) inputRef.current.value = selected;
   };
 
   const onChangeListener = (ev: any) => {
@@ -163,6 +175,8 @@ const Autocomplete = (props: AutocompleteProps) => {
       <SearchItem
         className={index === selectedIndex ? `active` : ``}
         key={index}
+        onMouseOut={(e: any) => mouseOutListener(e)}
+        onMouseOver={(e: any) => mouseHoverListener(e, index)}
         onClick={(e: any) => mouseClickListener(e, index)}
       >
         {d[options.label]}
@@ -253,7 +267,7 @@ const Autocomplete = (props: AutocompleteProps) => {
       if (searchResultRef && searchResultRef.current) {
         searchResultRef.current.scrollTo(0, scrollUtil.get());
       }
-    })
+    });
   };
 
   const clearInput = (e: any) => {
@@ -266,6 +280,7 @@ const Autocomplete = (props: AutocompleteProps) => {
     <Container ref={autoRef}>
       <InputSearch
         type={`text`}
+        ref={inputRef}
         onFocus={(e: any) => onFocusListener(searchResultRef)}
         onChange={(ev: any) => onChangeListener(ev)}
         onKeyDown={(e: any) => moveSelection(e)}
