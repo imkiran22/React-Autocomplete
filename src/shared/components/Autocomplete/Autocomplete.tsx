@@ -201,7 +201,7 @@ const Autocomplete = (props: AutocompleteProps) => {
       console.log("FETCHING FROM CACHE", value);
       setSelectedIndex(0);
       setData(cacheResults[value]);
-      resetScroll(searchResultRef);
+      setTimeout(() => resetScroll(searchResultRef))
     } else {
       console.log("DOESNT EXIST IN CACHE", value);
       props.change(value);
@@ -236,7 +236,7 @@ const Autocomplete = (props: AutocompleteProps) => {
       case 38:
         if (selectedIndex > 0) {
           setSelectedIndex(selectedIndex - 1);
-          let scrollPos = scrollUtil.get();
+          let scrollPos = scrollUtil.get() || 0;
           let newScrollPos = scrollPos - 45;
           scrollUtil.set(newScrollPos);
           searchResultRef.current.scrollTop = newScrollPos;
@@ -244,9 +244,9 @@ const Autocomplete = (props: AutocompleteProps) => {
         break;
       //DOWN
       case 40:
-        if (selectedIndex < props.data.length - 1) {
+        if (selectedIndex < data.length - 1) {
           setSelectedIndex(selectedIndex + 1);
-          let scrollPos = scrollUtil.get();
+          let scrollPos = scrollUtil.get() || 0;
           let newScrollPos = scrollPos + 45;
           scrollUtil.set(newScrollPos);
           searchResultRef.current.scrollTop = newScrollPos;
