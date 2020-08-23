@@ -1,0 +1,14 @@
+.App {
+  font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+    "Lucida Sans", Arial, sans-serif;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  flex-basis: 100%;
+  justify-content: flex-end;
+}
+
+.Autocomplete-Container {
+  display: flex;
+  justify-content: center;
+}
