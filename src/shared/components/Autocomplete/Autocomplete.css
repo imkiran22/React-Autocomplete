@@ -1,0 +1,9 @@
+@-webkit-keyframes placeholderShimmer {
+  0% {
+    background-position: -470px 0;
+  }
+
+  100% {
+    background-position: 470px 0;
+  }
+}

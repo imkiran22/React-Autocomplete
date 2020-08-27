@@ -3,6 +3,7 @@ import styled from "styled-components";
 import useDebounce from "../../hooks/use-debounce";
 import { ScrollUtil } from "../../../utils/DataUtil";
 let scrollUtil: any;
+import "./Autocomplete.css";
 
 interface AutocompleteOptions {
   key: string;
@@ -84,6 +85,41 @@ const Clear = styled.div`
   cursor: pointer;
 `;
 
+const PRIMARY = `#ececec`;
+const SECONDARY = `#bfbfbf`;
+const TERTIARY = `#eeeeee`;
+
+const Spinner = styled.div`
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  flex-basis: 100px;
+  font-size: 5em;
+  align-items: center;
+  .shine {
+    background: ${PRIMARY};
+    background-image: linear-gradient(
+      to right,
+      ${PRIMARY} 0%,
+      ${SECONDARY} 20%,
+      ${TERTIARY} 60%,
+      ${PRIMARY} 100%
+    );
+    background-repeat: no-repeat;
+    background-size: 800px 40px;
+    display: inline-block;
+    position: relative;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-fill-mode: forwards;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-name: placeholderShimmer;
+    -webkit-animation-timing-function: linear;
+    height: 40px;
+    margin-top: 1px;
+    width: 100%;
+  }
+`;
+
 const Autocomplete = (props: AutocompleteProps) => {
   const [selected, setSelected] = React.useState("");
   const [selectedIndex, setSelectedIndex] = React.useState(0);
@@ -96,6 +132,7 @@ const Autocomplete = (props: AutocompleteProps) => {
   const [cacheResults, setCacheResults] = React.useState({} as any);
   const [data, setData] = React.useState([] as any);
   const [temp, setTemp] = React.useState(0);
+  const [searching, setSearching] = React.useState(false);
 
   function updateCache(data: any, value: any) {
     const cache = Object.assign({}, cacheResults);
@@ -112,6 +149,7 @@ const Autocomplete = (props: AutocompleteProps) => {
     setCacheResults(cache);
     setSelectedIndex(0);
     resetScroll(searchResultRef);
+    setSearching(false);
   }, [data, debouncedValue]);
 
   const mouseClickListener = (ev: MouseEvent, index: number) => {
@@ -201,9 +239,10 @@ const Autocomplete = (props: AutocompleteProps) => {
       console.log("FETCHING FROM CACHE", value);
       setSelectedIndex(0);
       setData(cacheResults[value]);
-      setTimeout(() => resetScroll(searchResultRef))
+      setTimeout(() => resetScroll(searchResultRef));
     } else {
       console.log("DOESNT EXIST IN CACHE", value);
+      setSearching(true);
       props.change(value);
     }
   };
@@ -212,6 +251,7 @@ const Autocomplete = (props: AutocompleteProps) => {
     if (debouncedValue && debouncedValue.length > 0) {
       preferCache(debouncedValue);
     } else {
+      setSearching(false);
       setData([]);
     }
   }, [debouncedValue]);
@@ -273,6 +313,7 @@ const Autocomplete = (props: AutocompleteProps) => {
   const clearInput = (e: any) => {
     setData([]);
     setSelected("");
+    setSearching(false);
     scrollUtil.set(0);
   };
 
@@ -291,7 +332,15 @@ const Autocomplete = (props: AutocompleteProps) => {
       </Clear>
       {focused ? (
         <SearchResults ref={searchResultRef}>
-          {renderSearchItems()}
+          {searching ? (
+            <Spinner>
+              <div className="shine"></div>
+              <div className="shine"></div>
+              <div className="shine"></div>
+            </Spinner>
+          ) : (
+            renderSearchItems()
+          )}
         </SearchResults>
       ) : (
         <></>
