@@ -8,11 +8,6 @@
   justify-content: flex-end;
 }
 
-.Autocomplete-Container {
-  display: flex;
-  justify-content: center;
-}
-
 @keyframes opac {
   from {
     transform: scale(0);

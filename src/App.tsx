@@ -14,15 +14,12 @@ const FlexContainer = styled.div`
   display: flex;
   flex-direction: row;
   .Autocomplete-Container {
-    display: inline-flex;
+    display: flex;
     flex: 1;
-    
+    justify-content: center;
   }
   .SelectedUser-Container {
-    flex: 1;
-    /* display: inline-flex;
-justify-content: flex-start;
-   align-items: center; */
+    flex: 2;
   }
 `
 export default function App() {

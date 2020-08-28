@@ -14,6 +14,8 @@ const GitHubUser = styled.div`
     animation: opac 1s linear;
     opacity: 1;
   }
+  border: 1px solid #ccc;
+  box-shadow: 0px 3px 5px 5px #e2e8f0;
 `;
 const Avatar = styled.div`
   img {
@@ -31,25 +33,28 @@ const Field = styled.div`
   flex-direction: row;
   flex-wrap: nowrap;
   line-height: 20px;
+  padding: 5px;
   margin-bottom: 10px;
-  border-bottom: 1px solid lightgray;
+  border-bottom: 1.5px solid #a0aec0;
   label {
     flex: 1;
     text-align: left;
     text-transform: uppercase;
     font-weight: 600;
+    color: #2d3748;
   }
   span {
     flex: 2;
     text-align: left;
+    color: #718096;
   }
 `;
 
 const FieldContainer = styled.div`
   display: flex;
   flex-direction: column;
-  flex: 2;
-  max-height: 600px;
+  flex: 3;
+  height: 88vh;
   scroll-behavior: smooth;
   overflow: auto;
 `;
