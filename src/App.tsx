@@ -3,10 +3,9 @@ import "./styles.css";
 import Autocomplete from "./shared/components/Autocomplete/Autocomplete";
 const API_END_POINT = `https://api.github.com/search/users`;
 const Options = {
-  clientSide: true,
-  showNoData: true,
   key: "id",
-  label: "login"
+  label: "login",
+  photo: "avatar_url"
 };
 
 export default function App() {
@@ -25,6 +24,7 @@ export default function App() {
     const URL = `${API_END_POINT}?q=${value}`;
     const response = await fetch(URL);
     const data = await response.json();
+    console.log(data)
     filter(value, data.items);
   };
   return (

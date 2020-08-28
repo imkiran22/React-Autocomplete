@@ -8,6 +8,7 @@ import "./Autocomplete.css";
 interface AutocompleteOptions {
   key: string;
   label: string;
+  photo?: string;
 }
 
 interface AutocompleteProps {
@@ -57,6 +58,23 @@ const SearchItem = styled.span`
   margin-bottom: 5px;
   font-size: 14px;
   cursor: pointer;
+  flex-direction: row;
+  display: inline-flex;
+  justify-content: space-evenly;
+  align-items: center;
+  .label {
+    flex: 2;
+  }
+  .photo {
+    flex: 1;
+    display: inline-flex;
+    align-items: flex-end;
+    flex-direction: row;
+    justify-content: flex-end;
+    img {
+      width: 50px;
+    }
+  }
   &.active {
     background: linear-gradient(darkblue, #1f3a93);
     animation: scale 0.2s linear;
@@ -217,7 +235,12 @@ const Autocomplete = (props: AutocompleteProps) => {
         onMouseOver={(e: any) => mouseHoverListener(e, index)}
         onClick={(e: any) => mouseClickListener(e, index)}
       >
-        {d[options.label]}
+        <span className="label">{d[options.label]}</span>
+        {
+          options?.photo ?
+        <span className="photo"><img src={d[options?.photo]} alt={d[options.label]}/></span>
+          : <></>
+        }
       </SearchItem>
     ));
   };
@@ -274,6 +297,7 @@ const Autocomplete = (props: AutocompleteProps) => {
     switch (keyCode) {
       //UP
       case 38:
+        ev.preventDefault()
         if (selectedIndex > 0) {
           setSelectedIndex(selectedIndex - 1);
           let scrollPos = scrollUtil.get() || 0;
@@ -284,6 +308,7 @@ const Autocomplete = (props: AutocompleteProps) => {
         break;
       //DOWN
       case 40:
+        ev.preventDefault()
         if (selectedIndex < data.length - 1) {
           setSelectedIndex(selectedIndex + 1);
           let scrollPos = scrollUtil.get() || 0;
