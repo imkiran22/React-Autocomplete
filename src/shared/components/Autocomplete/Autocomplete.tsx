@@ -15,6 +15,7 @@ interface AutocompleteProps {
   options: AutocompleteOptions;
   data: { [key: string]: any }[];
   change: Function;
+  onSelect: Function;
 }
 
 const Container = styled.div`
@@ -22,7 +23,7 @@ const Container = styled.div`
   flex-direction: column;
   color: #191f42;
   flex-wrap: wrap;
-  flex-basis: 50%;
+  flex-basis: 75%;
   position: relative;
 `;
 
@@ -149,7 +150,6 @@ const Autocomplete = (props: AutocompleteProps) => {
   const searchResultRef = useRef<any>(null);
   const [cacheResults, setCacheResults] = React.useState({} as any);
   const [data, setData] = React.useState([] as any);
-  const [temp, setTemp] = React.useState(0);
   const [searching, setSearching] = React.useState(false);
 
   function updateCache(data: any, value: any) {
@@ -174,7 +174,15 @@ const Autocomplete = (props: AutocompleteProps) => {
     updateSelection(index);
     setSelectedIndex(index);
     setFocused(false);
+    propagateSelectionChange(index);
   };
+
+  function propagateSelectionChange(selectedIndex: number) {
+    const val = data
+      .filter((d: any, index: number) => index === selectedIndex)
+      .pop();
+    props.onSelect(val);
+  }
 
   const mouseHoverListener = (ev: MouseEvent, index: number) => {
     const selected: any = data.filter((d: any, i: number) => i === index).pop();
@@ -236,11 +244,13 @@ const Autocomplete = (props: AutocompleteProps) => {
         onClick={(e: any) => mouseClickListener(e, index)}
       >
         <span className="label">{d[options.label]}</span>
-        {
-          options?.photo ?
-        <span className="photo"><img src={d[options?.photo]} alt={d[options.label]}/></span>
-          : <></>
-        }
+        {options?.photo ? (
+          <span className="photo">
+            <img src={d[options?.photo]} alt={d[options.label]} />
+          </span>
+        ) : (
+          <></>
+        )}
       </SearchItem>
     ));
   };
@@ -297,7 +307,7 @@ const Autocomplete = (props: AutocompleteProps) => {
     switch (keyCode) {
       //UP
       case 38:
-        ev.preventDefault()
+        ev.preventDefault();
         if (selectedIndex > 0) {
           setSelectedIndex(selectedIndex - 1);
           let scrollPos = scrollUtil.get() || 0;
@@ -308,7 +318,7 @@ const Autocomplete = (props: AutocompleteProps) => {
         break;
       //DOWN
       case 40:
-        ev.preventDefault()
+        ev.preventDefault();
         if (selectedIndex < data.length - 1) {
           setSelectedIndex(selectedIndex + 1);
           let scrollPos = scrollUtil.get() || 0;
@@ -320,6 +330,7 @@ const Autocomplete = (props: AutocompleteProps) => {
       //ENTER
       case 13:
         updateSelection(selectedIndex);
+        propagateSelectionChange(selectedIndex);
         break;
       default:
         return true;
@@ -340,6 +351,7 @@ const Autocomplete = (props: AutocompleteProps) => {
     setSelected("");
     setSearching(false);
     scrollUtil.set(0);
+    props.onSelect(null);
   };
 
   return (

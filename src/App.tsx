@@ -1,6 +1,8 @@
 import * as React from "react";
 import "./styles.css";
+import styled from "styled-components"
 import Autocomplete from "./shared/components/Autocomplete/Autocomplete";
+import {SelectedUser} from "./components/SelectedUser/SelectedUser";
 const API_END_POINT = `https://api.github.com/search/users`;
 const Options = {
   key: "id",
@@ -8,8 +10,29 @@ const Options = {
   photo: "avatar_url"
 };
 
+const FlexContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  .Autocomplete-Container {
+    display: inline-flex;
+    flex: 1;
+    
+  }
+  .SelectedUser-Container {
+    flex: 1;
+    /* display: inline-flex;
+justify-content: flex-start;
+   align-items: center; */
+  }
+`
 export default function App() {
+  const [selected, setSelected] = React.useState(null as any);
   const [filteredData, setFilteredData] = React.useState([] as any);
+
+  const onSelect = (val: any) => {
+    setSelected(val)
+    console.log(val)
+  }
 
   const filter = (value: string, data: any) => {
     const currentFilterData: any = data || [];
@@ -29,14 +52,20 @@ export default function App() {
   };
   return (
     <div className="App">
-      <h1>Search Github Users</h1>
+      <h1 style={{letterSpacing: '7px'}}>Search Github Users</h1>
+      <FlexContainer>
       <div className="Autocomplete-Container">
         <Autocomplete
           options={Options}
           data={filteredData}
           change={searchListener}
+          onSelect={onSelect}
         />
       </div>
+      <div className="SelectedUser-Container">
+       <SelectedUser data={selected}></SelectedUser>
+      </div>
+      </FlexContainer>
     </div>
   );
 }
