@@ -49,7 +49,7 @@ export default function App() {
   };
   return (
     <div className="App">
-      <h1 style={{letterSpacing: '7px'}}>Search Github Users</h1>
+      <h1 style={{letterSpacing: '7px', color: '#2d3748'}}>Search Github Users</h1>
       <FlexContainer>
       <div className="Autocomplete-Container">
         <Autocomplete

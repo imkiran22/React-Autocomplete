@@ -5,14 +5,15 @@ interface Props {
 }
 
 const GitHubUser = styled.div`
-  display: inline-flex;
+  display: flex;
   flex-direction: row;
   flex-basis: 100%;
   justify-content: center;
-  opacity: 0;
+  h3 {
+    color: #718096;
+  }
   &.selected {
     animation: opac 1s linear;
-    opacity: 1;
   }
   border: 1px solid #ccc;
   box-shadow: 0px 3px 5px 5px #e2e8f0;
@@ -74,7 +75,7 @@ const renderFields = (data: any) => {
 
 export const SelectedUser: React.FC<Props> = (props: Props) => {
   return (
-    <GitHubUser className={props.data ? 'selected': ''}>
+    <GitHubUser className={props.data ? "selected" : ""}>
       {props.data ? (
         <React.Fragment>
           <Avatar>
@@ -83,7 +84,7 @@ export const SelectedUser: React.FC<Props> = (props: Props) => {
           <FieldContainer>{renderFields(props.data)}</FieldContainer>
         </React.Fragment>
       ) : (
-        <h3>No Selected User Information to Show</h3>
+        <h3>Select an user to present information</h3>
       )}
     </GitHubUser>
   );
