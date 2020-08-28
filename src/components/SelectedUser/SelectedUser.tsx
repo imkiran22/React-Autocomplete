@@ -9,6 +9,11 @@ const GitHubUser = styled.div`
   flex-direction: row;
   flex-basis: 100%;
   justify-content: center;
+  opacity: 0;
+  &.selected {
+    animation: opac 1s linear;
+    opacity: 1;
+  }
 `;
 const Avatar = styled.div`
   img {
@@ -38,7 +43,7 @@ const Field = styled.div`
     flex: 2;
     text-align: left;
   }
-`
+`;
 
 const FieldContainer = styled.div`
   display: flex;
@@ -47,32 +52,34 @@ const FieldContainer = styled.div`
   max-height: 600px;
   scroll-behavior: smooth;
   overflow: auto;
-`
+`;
 const renderFields = (data: any) => {
-  const keys = Object.keys(data)
+  const keys = Object.keys(data);
   if (keys.length)
-  return keys.map((k: any, i: number) => {
-    return (
-      <Field key={i}>
-        <label>{k.replace(/_/g, ' ')}</label>
-        <span>{data[k]}</span>
-      </Field>
-    )
-  })
-  return <></>
-}
+    return keys.map((k: any, i: number) => {
+      return (
+        <Field key={i}>
+          <label>{k.replace(/_/g, " ")}</label>
+          <span>{data[k]}</span>
+        </Field>
+      );
+    });
+  return <></>;
+};
 
 export const SelectedUser: React.FC<Props> = (props: Props) => {
-  if (props.data)
   return (
-    <GitHubUser>
-      <Avatar>
-        <img src={props.data.avatar_url} alt={props.data.login} />
-      </Avatar>
-      <FieldContainer>
-       {renderFields(props.data)}
-      </FieldContainer>
+    <GitHubUser className={props.data ? 'selected': ''}>
+      {props.data ? (
+        <React.Fragment>
+          <Avatar>
+            <img src={props.data.avatar_url} alt={props.data.login} />
+          </Avatar>
+          <FieldContainer>{renderFields(props.data)}</FieldContainer>
+        </React.Fragment>
+      ) : (
+        <h3>No Selected User Information to Show</h3>
+      )}
     </GitHubUser>
   );
-  return <></>
 };

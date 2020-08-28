@@ -1,9 +1,9 @@
+import "./Autocomplete.css";
 import React, { useEffect, useCallback, useRef, ReactHTMLElement } from "react";
 import styled from "styled-components";
 import useDebounce from "../../hooks/use-debounce";
 import { ScrollUtil } from "../../../utils/DataUtil";
 let scrollUtil: any;
-import "./Autocomplete.css";
 
 interface AutocompleteOptions {
   key: string;
@@ -364,9 +364,9 @@ const Autocomplete = (props: AutocompleteProps) => {
         onKeyDown={(e: any) => moveSelection(e)}
         value={selected}
       ></InputSearch>
-      <Clear onClick={(e: any) => clearInput(e)}>
+      {selected ? <Clear onClick={(e: any) => clearInput(e)}>
         <i className="fa fa-times fa-1x"></i>
-      </Clear>
+      </Clear> : <></>}
       {focused ? (
         <SearchResults ref={searchResultRef}>
           {searching ? (
