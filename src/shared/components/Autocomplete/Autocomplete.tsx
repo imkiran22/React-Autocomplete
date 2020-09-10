@@ -1,5 +1,11 @@
 import "./Autocomplete.css";
-import React, { useEffect, useCallback, useRef, ReactHTMLElement } from "react";
+import React, {
+  useEffect,
+  useCallback,
+  useRef,
+  ReactHTMLElement,
+  useReducer
+} from "react";
 import styled from "styled-components";
 import useDebounce from "../../hooks/use-debounce";
 import { ScrollUtil } from "../../../utils/DataUtil";
@@ -139,18 +145,61 @@ const Spinner = styled.div`
   }
 `;
 
+const initialAutoCompleteState = {
+  selected: "",
+  selectedIndex: 0,
+  focused: false,
+  cacheResults: {},
+  data: [],
+  searching: false
+};
+
 const Autocomplete = (props: AutocompleteProps) => {
-  const [selected, setSelected] = React.useState("");
-  const [selectedIndex, setSelectedIndex] = React.useState(0);
-  const [focused, setFocused] = React.useState(false);
+  const [autoState, dispatch] = useReducer((state: any, action: any) => {
+    let newState;
+    switch (action.type) {
+      case "SELECTED_INDEX":
+        newState = Object.assign({}, state);
+        newState.selectedIndex = action.payload;
+        return newState;
+      case "IS_SEARCHING":
+        newState = Object.assign({}, state);
+        newState.searching = action.payload;
+        return newState;
+      case "SEARCH_RESULTS":
+        newState = Object.assign({}, state);
+        newState.data = [...action.payload];
+        return newState;
+      case "CACHE_RESULTS":
+        newState = Object.assign({}, state);
+        newState.cacheResults = { ...action.payload };
+        return newState;
+      case "SET_FOCUS":
+        newState = Object.assign({}, state);
+        newState.focused = action.payload;
+        return newState;
+      case "SELECTED":
+        newState = Object.assign({}, state);
+        newState.selected = action.payload;
+        return newState;
+      default:
+        return state;
+    }
+  }, initialAutoCompleteState);
   const options = props.options;
   const autoRef = useRef(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const debouncedValue = useDebounce(selected, 500);
+  const debouncedValue = useDebounce(autoState.selected, 500);
   const searchResultRef = useRef<any>(null);
-  const [cacheResults, setCacheResults] = React.useState({} as any);
-  const [data, setData] = React.useState([] as any);
-  const [searching, setSearching] = React.useState(false);
+
+  const {
+    selected,
+    selectedIndex,
+    focused,
+    cacheResults,
+    data,
+    searching
+  } = autoState;
 
   function updateCache(data: any, value: any) {
     const cache = Object.assign({}, cacheResults);
@@ -159,21 +208,39 @@ const Autocomplete = (props: AutocompleteProps) => {
   }
 
   useEffect(() => {
-    setData(props.data as []);
+    dispatch({
+      type: "SEARCH_RESULTS",
+      payload: props.data as []
+    });
   }, [props.data]);
 
   useEffect(() => {
     const cache = updateCache(data, debouncedValue);
-    setCacheResults(cache);
-    setSelectedIndex(0);
+    dispatch({
+      type: "CACHE_RESULTS",
+      payload: cache
+    });
+    dispatch({
+      type: "SELECTED_INDEX",
+      payload: 0
+    });
     resetScroll(searchResultRef);
-    setSearching(false);
+    dispatch({
+      type: "IS_SEARCHING",
+      payload: false
+    });
   }, [data, debouncedValue]);
 
   const mouseClickListener = (ev: MouseEvent, index: number) => {
     updateSelection(index);
-    setSelectedIndex(index);
-    setFocused(false);
+    dispatch({
+      type: "SELECTED_INDEX",
+      payload: index
+    });
+    dispatch({
+      type: "SET_FOCUS",
+      payload: false
+    });
     propagateSelectionChange(index);
   };
 
@@ -196,16 +263,25 @@ const Autocomplete = (props: AutocompleteProps) => {
 
   const onChangeListener = (ev: any) => {
     search(ev.target.value);
-    setFocused(true);
+    dispatch({
+      type: "SET_FOCUS",
+      payload: true
+    });
     scrollUtil.set(0);
   };
 
   const handleClickOutside = (ev: MouseEvent) => {
     const { current: element }: any = autoRef;
     if (element && element.contains(ev.target)) {
-      setFocused(true);
+      dispatch({
+        type: "SET_FOCUS",
+        payload: true
+      });
     } else if (!element || !element.contains(ev.target)) {
-      setFocused(false);
+      dispatch({
+        type: "SET_FOCUS",
+        payload: false
+      });
     }
   };
 
@@ -223,7 +299,10 @@ const Autocomplete = (props: AutocompleteProps) => {
 
   function updateSelection(index: number) {
     setSelection(index);
-    setFocused(false);
+    dispatch({
+      type: "SET_FOCUS",
+      payload: false
+    });
   }
 
   const renderSearchItems = () => {
@@ -270,12 +349,21 @@ const Autocomplete = (props: AutocompleteProps) => {
   const preferCache = (value: string) => {
     if (value in cacheResults) {
       console.log("FETCHING FROM CACHE", value);
-      setSelectedIndex(0);
-      setData(cacheResults[value]);
+      dispatch({
+        type: "SELECTED_INDEX",
+        payload: 0
+      });
+      dispatch({
+        type: "SEARCH_RESULTS",
+        payload: cacheResults[value]
+      });
       setTimeout(() => resetScroll(searchResultRef));
     } else {
       console.log("DOESNT EXIST IN CACHE", value);
-      setSearching(true);
+      dispatch({
+        type: "IS_SEARCHING",
+        payload: true
+      });
       props.change(value);
     }
   };
@@ -284,18 +372,30 @@ const Autocomplete = (props: AutocompleteProps) => {
     if (debouncedValue && debouncedValue.length > 0) {
       preferCache(debouncedValue);
     } else {
-      setSearching(false);
-      setData([]);
+      dispatch({
+        type: "IS_SEARCHING",
+        payload: false
+      });
+      dispatch({
+        type: "SEARCH_RESULTS",
+        payload: []
+      });
     }
   }, [debouncedValue]);
 
   const search = (value: string) => {
-    setSelected(value);
+    dispatch({
+      type: "SELECTED",
+      payload: value
+    });
   };
 
   const setSelection = (index: number) => {
     const selected: any = data.filter((d: any, i: number) => i === index).pop();
-    setSelected(selected[options.label]);
+    dispatch({
+      type: "SELECTED",
+      payload: selected[options.label]
+    });
   };
 
   const moveSelection = (ev: KeyboardEvent | any) => {
@@ -309,7 +409,10 @@ const Autocomplete = (props: AutocompleteProps) => {
       case 38:
         ev.preventDefault();
         if (selectedIndex > 0) {
-          setSelectedIndex(selectedIndex - 1);
+          dispatch({
+            type: "SELECTED_INDEX",
+            payload: selectedIndex - 1
+          });
           let scrollPos = scrollUtil.get() || 0;
           let newScrollPos = scrollPos - 45;
           scrollUtil.set(newScrollPos);
@@ -320,7 +423,10 @@ const Autocomplete = (props: AutocompleteProps) => {
       case 40:
         ev.preventDefault();
         if (selectedIndex < data.length - 1) {
-          setSelectedIndex(selectedIndex + 1);
+          dispatch({
+            type: "SELECTED_INDEX",
+            payload: selectedIndex + 1
+          });
           let scrollPos = scrollUtil.get() || 0;
           let newScrollPos = scrollPos + 45;
           scrollUtil.set(newScrollPos);
@@ -338,7 +444,10 @@ const Autocomplete = (props: AutocompleteProps) => {
   };
 
   const onFocusListener = (searchResultRef: any) => {
-    setFocused(true);
+    dispatch({
+      type: "SET_FOCUS",
+      payload: true
+    });
     setTimeout(() => {
       if (scrollUtil && searchResultRef && searchResultRef.current) {
         searchResultRef.current.scrollTo(0, scrollUtil.get());
@@ -347,9 +456,18 @@ const Autocomplete = (props: AutocompleteProps) => {
   };
 
   const clearInput = (e: any) => {
-    setData([]);
-    setSelected("");
-    setSearching(false);
+    dispatch({
+      type: "SEARCH_RESULTS",
+      payload: []
+    });
+    dispatch({
+      type: "SELECTED",
+      payload: ""
+    });
+    dispatch({
+      type: "IS_SEARCHING",
+      payload: false
+    });
     scrollUtil.set(0);
     props.onSelect(null);
   };
@@ -364,9 +482,13 @@ const Autocomplete = (props: AutocompleteProps) => {
         onKeyDown={(e: any) => moveSelection(e)}
         value={selected}
       ></InputSearch>
-      {selected ? <Clear onClick={(e: any) => clearInput(e)}>
-        <i className="fa fa-times fa-1x"></i>
-      </Clear> : <></>}
+      {selected ? (
+        <Clear onClick={(e: any) => clearInput(e)}>
+          <i className="fa fa-times fa-1x"></i>
+        </Clear>
+      ) : (
+        <></>
+      )}
       {focused ? (
         <SearchResults ref={searchResultRef}>
           {searching ? (
